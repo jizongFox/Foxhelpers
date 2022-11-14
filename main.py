@@ -1,5 +1,5 @@
-from meters import AverageValueMeter
-from meters import MeterInterface, Storage
+from foxmetrics import AverageValueMeter
+from foxmetrics import MeterInterface, Storage
 import torch
 
 meters = MeterInterface(default_focus="tra")

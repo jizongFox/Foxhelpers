@@ -2,14 +2,14 @@ import torch
 import typing as t
 from collections import defaultdict
 from torch import Tensor
-from .metric import Metric
+from .metric import Metric, DistributedMixin
 from torch import distributed as dist
 
 metric_result = Tensor
 dictionary_metric_result = Metric[t.Union[str, metric_result]]
 
 
-class AverageValueMeter(Metric[metric_result]):
+class AverageValueMeter(Metric[metric_result], DistributedMixin):
     def __init__(self):
         super(AverageValueMeter, self).__init__()
         self.sum = torch.tensor(0.0)
@@ -21,7 +21,8 @@ class AverageValueMeter(Metric[metric_result]):
         self.n += n
 
     def _synchronize(self):
-        dist.all_reduce(self.sum, op=dist.ReduceOp.AVG)  # noqa
+        dist.all_reduce(self.sum, op=dist.ReduceOp.SUM)
+        self.sum /= self.process_num
 
     def reset(self):
         self.sum = 0
@@ -32,7 +33,11 @@ class AverageValueMeter(Metric[metric_result]):
         return torch.nan if self.n == 0 else self.sum / self.n  # noqa
 
 
-class AverageValueDictionaryMeter(Metric[dictionary_metric_result]):
+class AverageValueDictionaryMeter(Metric[dictionary_metric_result], DistributedMixin):
+    def _synchronize(self):
+        for meters in self._meter_dicts.values():
+            meters.synchronize()
+
     def __init__(self) -> None:
         super().__init__()
         self._meter_dicts: t.Dict[str, AverageValueMeter] = defaultdict(AverageValueMeter)

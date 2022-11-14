@@ -24,10 +24,7 @@ class Metric(t.Generic[RETURN_TYPE]):
     def _add(self, *args, **kwargs):
         pass
 
-    @t.final
     def summary(self) -> RETURN_TYPE:
-        self.synchronize()
-
         return self._summary()
 
     @abstractmethod
@@ -42,6 +39,12 @@ class Metric(t.Generic[RETURN_TYPE]):
     def close(self):
         return
 
+
+BASE = Metric if t.TYPE_CHECKING else object
+
+
+class DistributedMixin(BASE):
+    @abstractmethod
     def _synchronize(self):
         """Synchronize values across GPUs"""
         pass
@@ -54,3 +57,14 @@ class Metric(t.Generic[RETURN_TYPE]):
     @property
     def is_distributed(self) -> bool:
         return dist.is_initialized()
+
+    @property
+    def process_num(self) -> int:
+        try:
+            return dist.get_world_size()
+        except:  # noqa
+            return 1
+
+    def summary(self) -> RETURN_TYPE:
+        self.synchronize()
+        return self.summary()
