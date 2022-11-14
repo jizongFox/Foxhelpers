@@ -9,11 +9,18 @@ metric_result = Tensor
 dictionary_metric_result = Metric[t.Union[str, metric_result]]
 
 
-class AverageValueMeter(Metric[metric_result], DistributedMixin):
+class AverageValueMeter(DistributedMixin, Metric[metric_result]):
     def __init__(self):
         super(AverageValueMeter, self).__init__()
         self.sum = torch.tensor(0.0)
         self.n = 0
+
+    @t.overload
+    def add(self, value: Tensor, n: int = 1):
+        ...
+
+    def add(self, *args, **kwargs):
+        return super(AverageValueMeter, self).add(*args, **kwargs)
 
     def _add(self, value: Tensor, n=1):
         device, dtype = value.device, value.dtype
@@ -33,7 +40,7 @@ class AverageValueMeter(Metric[metric_result], DistributedMixin):
         return torch.nan if self.n == 0 else self.sum / self.n  # noqa
 
 
-class AverageValueDictionaryMeter(Metric[dictionary_metric_result], DistributedMixin):
+class AverageValueDictionaryMeter(DistributedMixin, Metric[dictionary_metric_result]):
     def _synchronize(self):
         for meters in self._meter_dicts.values():
             meters.synchronize()
@@ -55,14 +62,6 @@ class AverageValueDictionaryMeter(Metric[dictionary_metric_result], DistributedM
 
 
 class AverageValueListMeter(AverageValueDictionaryMeter):
-    @t.overload
-    def add(self, **kwargs):
-        """
-        Added keyword only variables
-        :param kwargs:
-        :return:
-        """
-        ...
 
     def _add(self, list_value: t.Iterable[float] = None, **kwargs):
         assert isinstance(list_value, t.Iterable)

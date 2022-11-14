@@ -2,11 +2,15 @@ from foxmetrics import AverageValueMeter
 from foxmetrics import MeterInterface, Storage
 import torch
 
+mdf = AverageValueMeter()
+mdf.add(1)
+
 meters = MeterInterface(default_focus="tra")
 with meters.focus_on("test"):
     meters.register_meter("loss", AverageValueMeter())
 with meters.focus_on("test"):
-    meters["loss"].add(torch.tensor(2))
+    cur_meter: AverageValueMeter = meters["loss"]
+    meters["loss"].add()
     meters["loss"].add(torch.tensor(4))
 
 print(list(meters.statistics()))

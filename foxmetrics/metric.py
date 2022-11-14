@@ -15,7 +15,6 @@ class Metric(t.Generic[RETURN_TYPE]):
     def reset(self):
         pass
 
-    @t.final
     def add(self, *args, **kwargs):
         assert self._initialized, f"{self.__class__.__name__} must be initialized by overriding __init__"
         return self._add(*args, **kwargs)
@@ -67,4 +66,4 @@ class DistributedMixin(BASE):
 
     def summary(self) -> RETURN_TYPE:
         self.synchronize()
-        return self.summary()
+        return super(DistributedMixin, self).summary()
