@@ -1,8 +1,16 @@
 from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
 from typing import Dict, List
+import torch
+from torch import Tensor
 
 from . import metric
+
+
+def t2float(value):
+    if isinstance(value, Tensor) and value.dim() == 0:
+        return value.item()
+    return value
 
 
 class MeterInterface:
@@ -83,7 +91,7 @@ class MeterInterface:
 
     def _statistics_by_group(self, group_name: str):
         meters = self._get_meters_by_group(group_name)
-        return {k: m.summary() for k, m in meters.items()}
+        return {k: t2float(m.summary()) for k, m in meters.items()}
 
     def statistics(self):
         """get statistics from meter_interface. ignoring the group with name starting with `_`"""

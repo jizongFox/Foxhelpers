@@ -1,5 +1,6 @@
 import typing as t
 from abc import abstractmethod
+from torch import distributed as dist
 
 RETURN_TYPE = t.TypeVar("RETURN_TYPE")
 
@@ -25,6 +26,8 @@ class Metric(t.Generic[RETURN_TYPE]):
 
     @t.final
     def summary(self) -> RETURN_TYPE:
+        self.synchronize()
+
         return self._summary()
 
     @abstractmethod
@@ -38,3 +41,16 @@ class Metric(t.Generic[RETURN_TYPE]):
     @t.final
     def close(self):
         return
+
+    def _synchronize(self):
+        """Synchronize values across GPUs"""
+        pass
+
+    @t.final
+    def synchronize(self):
+        if self.is_distributed:
+            self._synchronize()
+
+    @property
+    def is_distributed(self) -> bool:
+        return dist.is_initialized()

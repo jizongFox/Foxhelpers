@@ -1,23 +1,27 @@
+import torch
 import typing as t
 from collections import defaultdict
-
-import numpy as np
-
+from torch import Tensor
 from .metric import Metric
+from torch import distributed as dist
 
-metric_result = t.Union[float, np.ndarray]
+metric_result = Tensor
 dictionary_metric_result = Metric[t.Union[str, metric_result]]
 
 
 class AverageValueMeter(Metric[metric_result]):
     def __init__(self):
         super(AverageValueMeter, self).__init__()
-        self.sum = 0
+        self.sum = torch.tensor(0.0)
         self.n = 0
 
-    def _add(self, value, n=1):
-        self.sum += value * n
+    def _add(self, value: Tensor, n=1):
+        device, dtype = value.device, value.dtype
+        self.sum = self.sum.to(device=device, dtype=dtype) + value.detach() * n
         self.n += n
+
+    def _synchronize(self):
+        dist.all_reduce(self.sum, op=dist.ReduceOp.AVG)  # noqa
 
     def reset(self):
         self.sum = 0
@@ -25,7 +29,7 @@ class AverageValueMeter(Metric[metric_result]):
 
     def _summary(self) -> metric_result:
         # this function returns a dict and tends to aggregate the historical results.
-        return np.nan if self.n == 0 else float(self.sum / self.n)
+        return torch.nan if self.n == 0 else self.sum / self.n  # noqa
 
 
 class AverageValueDictionaryMeter(Metric[dictionary_metric_result]):
@@ -36,15 +40,6 @@ class AverageValueDictionaryMeter(Metric[dictionary_metric_result]):
     def reset(self):
         for k, v in self._meter_dicts.items():
             v.reset()
-
-    @t.overload
-    def add(self, **kwargs: t.Any):
-        """
-        Added keyword only variables
-        :param kwargs:
-        :return:
-        """
-        ...
 
     def _add(self, **kwargs):
         for k, v in kwargs.items():
