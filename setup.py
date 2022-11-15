@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='foxmetrics',
-    version='1.0.6',
+    version='1.0.8',
     packages=['foxmetrics'],
     url='',
     license='',
