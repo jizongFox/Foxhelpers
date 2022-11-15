@@ -32,7 +32,7 @@ class AverageValueMeter(DistributedMixin, Metric[metric_result]):
         self.sum /= self.process_num
 
     def reset(self):
-        self.sum = 0
+        self.sum = torch.tensor(0.0)
         self.n = 0
 
     def _summary(self) -> metric_result:

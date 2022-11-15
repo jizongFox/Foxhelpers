@@ -64,6 +64,6 @@ class DistributedMixin(BASE):
         except:  # noqa
             return 1
 
-    def summary(self) -> RETURN_TYPE:
+    def add(self, *args, **kwargs) -> RETURN_TYPE:
         self.synchronize()
-        return super(DistributedMixin, self).summary()
+        return super(DistributedMixin, self).add(*args, **kwargs)
