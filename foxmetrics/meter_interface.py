@@ -1,7 +1,7 @@
 from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
 from typing import Dict, List
-import torch
+
 from torch import Tensor
 
 from . import metric
