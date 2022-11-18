@@ -61,10 +61,10 @@ def rename_df_columns(dataframe: pd.DataFrame, name: str, sep="_"):
     return dataframe
 
 
-def flatten_dict(d: t.MutableMapping[str, t.Any], parent_key: str = "", sep: str = "_"):
+def flatten_dict(d: t.MutableMapping[str, t.Any], parent_key: str = "", sep: str = "."):
     items = []
     for k, v in d.items():
-        new_key = parent_key + sep + k if parent_key else k
+        new_key = parent_key + sep + str(k) if parent_key else str(k)
         if isinstance(v, t.MutableMapping):
             items.extend(flatten_dict(v, new_key, sep=sep).items())
         else:
