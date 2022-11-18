@@ -1,5 +1,13 @@
+import contextlib
 import typing as t
+
+try:
+    from typing import final
+except ImportError:
+    from typing_extensions import final
+
 from abc import abstractmethod
+
 from torch import distributed as dist
 
 RETURN_TYPE = t.TypeVar("RETURN_TYPE")
@@ -30,11 +38,11 @@ class Metric(t.Generic[RETURN_TYPE]):
     def _summary(self) -> RETURN_TYPE:
         pass
 
-    @t.final
+    @final
     def join(self):
         return
 
-    @t.final
+    @final
     def close(self):
         return
 
@@ -48,7 +56,7 @@ class DistributedMixin(BASE):
         """Synchronize values across GPUs"""
         pass
 
-    @t.final
+    @final
     def synchronize(self):
         if self.is_distributed:
             self._synchronize()
@@ -67,3 +75,8 @@ class DistributedMixin(BASE):
     def add(self, *args, **kwargs):
         super(DistributedMixin, self).add(*args, **kwargs)
         self.synchronize()
+
+    @contextlib.contextmanager
+    def synchronize_cmx(self):
+        self.synchronize()
+        yield

@@ -1,9 +1,11 @@
-import torch
 import typing as t
 from collections import defaultdict
+
+import torch
 from torch import Tensor
-from .metric import Metric, DistributedMixin
 from torch import distributed as dist
+
+from .metric import Metric, DistributedMixin
 
 metric_result = Tensor
 dictionary_metric_result = Metric[t.Union[str, metric_result]]
