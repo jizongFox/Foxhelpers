@@ -1,7 +1,6 @@
-from typing import Iterable, TypeVar, overload, Union, Any, Dict, Sequence
+from typing import Iterable, TypeVar, overload, Union, Any, Dict, Sequence, Optional
 
 import numpy as np
-import torch
 from torch import Tensor
 
 __all__ = ["item2str"]
@@ -10,6 +9,13 @@ PrintableVar = TypeVar("PrintableVar", float, int, str)
 
 __dict_bracket__ = ""
 __iter_bracket__ = "[]"
+__decimal__ = "#.3g"
+
+
+def __set_decimal(decimal: int):
+    assert isinstance(decimal, int)
+    global __decimal__
+    __decimal__ = f"#.{decimal}g"
 
 
 def _torch_is_scalar(v: 'Tensor') -> bool:
@@ -64,11 +70,16 @@ def is_leaf_node(v):
     return True
 
 
+def __convertible_int(x) -> bool:
+    return x == int(x)
+
+
 def __num2str2(v: PrintableVar):
     """only accept int, float and str"""
-    if isinstance(v, int):
-        return f"{v}"
-    return f"{v:#.3g}"
+    global __decimal__
+    if isinstance(v, int) or __convertible_int(v):
+        return f"{int(v)}"
+    return ("{:" + f"{__decimal__}" + "}").format(v)
 
 
 def leaf_node2str(v) -> str:
@@ -122,11 +133,23 @@ def dict2str(dictionary: Dict[str, Any]):
     raise RuntimeError(bracket)
 
 
-def item2str(item: Union[Dict[str, Any], Sequence[Any], PrintableVar], *, dict_bracket: str = None,
-             iter_bracket: str = None) -> str:
+def item2str(item: Union[Dict[str, Any], Sequence[Any], PrintableVar], *, dict_bracket: Optional[str] = None,
+             iter_bracket: Optional[str] = None, decimal: Optional[int] = None) -> str:
+    """
+    converting function form nested dictionary/iterators/sequences to a string.
+    :param item: printable item, dictionary, sequence ...
+    :param dict_bracket: the bracket used to quote dictionary, default: "", but it can be set as `{}`
+    :param iter_bracket: the bracket to quote iterators/sequences, default: `[]`, but it can be set as `||`
+    :param decimal: decimal to display for float.
+    :return: string.
+    """
+
     global __dict_bracket__, __iter_bracket__
     __dict_bracket__ = dict_bracket or __dict_bracket__
     __iter_bracket__ = iter_bracket or __iter_bracket__
+    if decimal is not None:
+        __set_decimal(decimal)
+
     if is_scalar(item):
         return __num2str2(item)
     if isinstance(item, Dict):
@@ -134,12 +157,3 @@ def item2str(item: Union[Dict[str, Any], Sequence[Any], PrintableVar], *, dict_b
     if is_iterable(item):
         return iter2str(item)
     raise NotImplementedError(item)
-
-
-if __name__ == "__main__":
-    a = {"a": {1: 2, 2: {3, 4}, 5: [1, 2, 0.00000398948329483]},
-         "ofds": ["123", "23", torch.tensor(1), torch.Tensor([1, 2, 3])]}
-    from foxmetrics.utils import flatten_dict
-
-    print(flatten_dict(a))
-    print(item2str(flatten_dict(a), dict_bracket=None, iter_bracket="||"))
