@@ -60,12 +60,12 @@ class Storage(metaclass=ABCMeta):
         return self.__storage[name][epoch]
 
     def summary(self) -> pd.DataFrame:
-        if list_of_summary := [rename_df_columns(v.summary(), k, "/") for k, v in self.__storage.items()]:
+        list_of_summary = [rename_df_columns(v.summary(), k, "/") for k, v in self.__storage.items()]
+        summary = []
+        if len(list_of_summary) > 0:
             summary = functools.reduce(
                 lambda x, y: pd.merge(x, y, left_index=True, right_index=True), list_of_summary
             )
-        else:
-            summary = []
         return pd.DataFrame(summary)
 
     @property
