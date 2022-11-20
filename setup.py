@@ -9,6 +9,6 @@ setup(
     author='jizong',
     author_email='jizong.peng.ca@gmail.com',
     description='metrics for decoupled training',
-    install_requires=["loguru", "termcolor", "pandas"],
+    install_requires=["loguru", "termcolor", "pandas", "numpy"],
     python_requires='>3.6.0'
 )
