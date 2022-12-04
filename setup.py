@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name='foxmetrics',
+    name='foxhelpers',
     version='1.1.5',
     packages=['foxmetrics', "foxconfig"],
     url='',
