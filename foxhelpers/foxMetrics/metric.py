@@ -61,7 +61,7 @@ class DistributedMixin(BASE):
 
     @property
     def is_distributed(self) -> bool:
-        return DistributedEnv().is_distributed
+        return DistributedEnv().is_dist_initialized
 
     @property
     def process_num(self) -> int:
