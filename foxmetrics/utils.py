@@ -5,7 +5,7 @@ from collections import OrderedDict
 import pandas as pd
 
 
-def OrderedDict2DataFrame(dictionary: t.Dict[int, t.Dict]):
+def OrderedDict2DataFrame(dictionary: t.Dict[int, t.Dict]) -> pd.DataFrame:
     try:
         validated_table = pd.DataFrame(dictionary).T
     except ValueError:
