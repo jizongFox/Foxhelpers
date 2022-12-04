@@ -8,8 +8,9 @@ except ImportError:
 
 from abc import abstractmethod
 
-from torch import distributed as dist
+from foxhelpers.distributed_helper import DistributedEnv
 
+BASE = 'Metric' if t.TYPE_CHECKING else object
 RETURN_TYPE = t.TypeVar("RETURN_TYPE")
 
 
@@ -47,9 +48,6 @@ class Metric(t.Generic[RETURN_TYPE]):
         return
 
 
-BASE = Metric if t.TYPE_CHECKING else object
-
-
 class DistributedMixin(BASE):
     @abstractmethod
     def _synchronize(self):
@@ -63,14 +61,11 @@ class DistributedMixin(BASE):
 
     @property
     def is_distributed(self) -> bool:
-        return dist.is_initialized()
+        return DistributedEnv().is_distributed
 
     @property
     def process_num(self) -> int:
-        try:
-            return dist.get_world_size()
-        except:  # noqa
-            return 1
+        return DistributedEnv().word_size
 
     def add(self, *args, **kwargs):
         super(DistributedMixin, self).add(*args, **kwargs)

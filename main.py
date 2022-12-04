@@ -1,7 +1,7 @@
 import torch
 
-from foxmetrics import AverageValueMeter
-from foxmetrics import MeterInterface, Storage
+from foxhelpers.foxMetrics import AverageValueMeter
+from foxhelpers.foxMetrics import MeterInterface, Storage
 
 mdf = AverageValueMeter()
 mdf.add(1)

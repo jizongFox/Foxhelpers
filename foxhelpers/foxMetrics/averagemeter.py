@@ -30,7 +30,7 @@ class AverageValueMeter(DistributedMixin, Metric[metric_result]):
         self.n += n
 
     def _synchronize(self):
-        dist.all_reduce(self.sum, op=dist.ReduceOp.SUM)
+        dist.all_reduce(self.sum)
         self.sum /= self.process_num
 
     def reset(self):
