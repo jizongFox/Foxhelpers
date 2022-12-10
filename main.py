@@ -1,4 +1,5 @@
-from foxhelpers.distributed_helper import  DistributedEnv
+from foxhelpers.foxConfig import OmegaParser
 
-DistributedEnv().ipdb_set_trace()
-print(DistributedEnv().local_rank)
+config_parser = OmegaParser()
+config_parser.parse_args()
+print(config_parser.summary())

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='foxhelpers',
-    version='1.1.5',
+    version='1.1.7',
     packages=find_packages(exclude=["venv", "dist"]),
     url='',
     license='',

@@ -61,11 +61,11 @@ class DistributedMixin(BASE):
 
     @property
     def is_distributed(self) -> bool:
-        return DistributedEnv().is_dist_initialized
+        return DistributedEnv().is_initialized
 
     @property
     def process_num(self) -> int:
-        return DistributedEnv().word_size
+        return DistributedEnv().world_size
 
     def add(self, *args, **kwargs):
         super(DistributedMixin, self).add(*args, **kwargs)
