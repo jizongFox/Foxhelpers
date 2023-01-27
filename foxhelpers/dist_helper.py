@@ -1,10 +1,12 @@
 import os
 import sys
+import typing
 from contextlib import suppress
 from dataclasses import dataclass
 
 import torch
 from torch import distributed as dist
+from torch import nn
 
 
 class _Singleton(type):
@@ -19,7 +21,7 @@ class _Singleton(type):
 def is_dist_initialized() -> bool:
     try:
         return dist.is_initialized()
-    except:
+    except:  # noqa
         return False
 
 
@@ -87,9 +89,30 @@ class DistributedEnv(metaclass=_Singleton):
             dist.barrier()
 
 
-def init_distributed_mode(distributed_env: DistributedEnv, init_method: str = None):
+DIST_ENV = DistributedEnv()
+
+
+def init_distributed_mode(distributed_env: typing.Optional[DistributedEnv] = None,
+                          init_method: typing.Optional[str] = None):
+    distributed_env = distributed_env or DIST_ENV
     torch.cuda.set_device(distributed_env.local_rank)
     dist.init_process_group(backend="nccl", init_method=init_method,
                             world_size=distributed_env.world_size, rank=distributed_env.rank)
 
     distributed_env.barrier()
+
+
+def average_gradients(model: nn.Module):
+    """ Gradient averaging. """
+    size = float(dist.get_world_size())
+    for param in model.parameters():
+        dist.all_reduce(param.grad.data, op=dist.reduce_op.SUM)
+        param.grad.data /= size
+
+
+def broadcast_model_parameters_and_buffers(model: nn.Module):
+    """ Broadcast model parameters and buffers. """
+    for param in model.parameters():
+        dist.broadcast(param.data, 0)
+    for buf in model.buffers():
+        dist.broadcast(buf, 0)
